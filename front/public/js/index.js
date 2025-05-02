@@ -108,7 +108,7 @@ function updateStatus () {
     }
 
     $status.html(status);
-    $pgn.html(game.pgn());
+    $pgn.html(game.pgn({ maxWidth: 5, newline: '<br />' }));
 }
 
 var config = {
@@ -120,6 +120,7 @@ var config = {
     pieceTheme: '/public/img/chesspieces/wikipedia/{piece}.png'
 }
 board = Chessboard('myBoard', config)
+$(window).resize(board.resize)
 if (playerColor == 'black') {
     board.flip();
 }
