@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{> head}}
+</head>
+
+<body class="bg-[#050505] text-white font-sans">
+    <div class="max-w-3xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <a href="/"
+                class="inline-flex items-center justify-center p-4 bg-zinc-900 rounded-3xl mb-6 border border-white/5 shadow-2xl">
+                <img src="/public/img/main-icon.png" alt="Chess Game" class="w-18 h-18">
+            </a>
+            <h1
+                class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">
+                Chess Game</h1>
+            <p class="text-zinc-400 text-lg">Real-time Multiplayer Chess Game</p>
+        </div>
+
+        <div class="bg-zinc-900/50 rounded-[2.5rem] p-8 border border-white/5 backdrop-blur-sm shadow-2xl">
+            <!-- About Section -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold flex items-center gap-3 mb-4 text-cyan-400">
+                    <span class="text-2xl">📖</span> About
+                </h2>
+                <div class="text-zinc-300 leading-relaxed space-y-4">
+                    <p>
+                        <strong class="text-white">Chess Game</strong> is a real-time multiplayer chess game developed
+                        by <a href="https://khaizinam.io.vn"
+                            class="text-cyan-400 hover:text-cyan-300 transition-colors">khaizinam.io.vn</a>.
+                    </p>
+                    <p>
+                        The game is built entirely with HTML5, CSS3, and JavaScript, bringing a classic chess experience
+                        right to your web browser without any installation required. Utilizing Socket.io for real-time
+                        communication, players can challenge friends in private rooms instantly.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Author Section -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold flex items-center gap-3 mb-4 text-orange-400">
+                    <span class="text-2xl">🧑‍💻</span> Author
+                </h2>
+                <p class="text-zinc-300 leading-relaxed">
+                    Developed and maintained by <strong class="text-white">khaizinam</strong> - a passionate developer
+                    dedicated to creating interactive and engaging web experiences.
+                </p>
+            </section>
+
+            <!-- Contact Section -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold flex items-center gap-3 mb-4 text-indigo-400">
+                    <span class="text-2xl">📧</span> Contact
+                </h2>
+                <div class="bg-zinc-950/50 rounded-2xl p-6 border-l-4 border-cyan-500">
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3">
+                            <span class="text-zinc-400 font-medium w-24">Email:</span>
+                            <a href="mailto:khaizinam@gmail.com"
+                                class="text-cyan-400 hover:underline">khaizinam@gmail.com</a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="text-zinc-400 font-medium w-24">Website:</span>
+                            <a href="https://khaizinam.io.vn" target="_blank"
+                                class="text-cyan-400 hover:underline">khaizinam.io.vn</a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="text-zinc-400 font-medium w-24">Game Demo:</span>
+                            <a href="https://chess.khaizinam.io.vn" target="_blank"
+                                class="text-cyan-400 hover:underline">chess.khaizinam.io.vn</a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Source Code Section -->
+            <section class="mb-10">
+                <h2 class="text-2xl font-bold flex items-center gap-3 mb-4 text-blue-400">
+                    <span class="text-2xl">💻</span> Source Code
+                </h2>
+                <p class="text-zinc-300 mb-6 font-medium">This project is open source and available on GitHub:</p>
+                <a href="https://github.com/khaizinam/check-html" target="_blank"
+                    class="inline-flex items-center gap-3 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-xl transition-all border border-white/5 active:scale-95 group">
+                    <svg height="24" width="24" viewBox="0 0 16 16" fill="currentColor" class="text-white">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg>
+                    <span class="text-white font-bold">GitHub Repository</span>
+                </a>
+            </section>
+
+            <!-- Support Us Section -->
+            <section class="mb-10 text-center">
+                <h2 class="text-2xl font-bold flex items-center justify-center gap-3 mb-6 text-pink-500">
+                    <span class="text-2xl">❤️</span> Support Us
+                </h2>
+                <div class="max-w-xs mx-auto">
+                    <p class="text-zinc-400 mb-6">If you enjoy Chess Game and would like to support its development, you
+                        can make a donation here:</p>
+                    <div class="bg-white p-4 rounded-3xl shadow-2xl inline-block border-8 border-white">
+                        <img src="/public/img/qr_code.png" alt="SePay QR Code"
+                            class="rounded-xl w-64 h-64 object-contain">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Thank You Section -->
+            <section class="mb-4 text-center">
+                <h2 class="text-2xl font-bold flex items-center justify-center gap-3 mb-4 text-yellow-400">
+                    <span class="text-2xl">🙏</span> Thank You
+                </h2>
+                <p class="text-zinc-400 max-w-lg mx-auto leading-relaxed">
+                    Thank you for your interest in Chess Game! If you have any questions, feedback, or would like to
+                    collaborate, please feel free to contact me via email or website.
+                </p>
+            </section>
+
+            <!-- Back Button -->
+            <div class="text-center pt-4 border-t border-white/5">
+                <a href="/"
+                    class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-cyan-500/20 active:scale-95">
+                    ← Back to Game
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -23,4 +23,8 @@ module.exports = app => {
             color: 'black'
         });
     });
+
+    app.get('/about', (req, res) => {
+        res.render('about');
+    });
 };
