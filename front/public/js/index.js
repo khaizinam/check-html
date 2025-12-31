@@ -9,7 +9,6 @@ let gameOver = false;
 const alertModal = document.getElementById('liveAlertPlaceholder');
 const $replayBtn = $('#replayBtn');
 const $resignBtn = $('#resignBtn');
-const $menuBtn = $('#menuBtn');
 const $whiteTimer = $('#whiteTimer');
 const $blackTimer = $('#blackTimer');
 const $backToMenuBtn = $('#backToMenuBtn');
@@ -18,6 +17,7 @@ let whiteTime = 900;
 let blackTime = 900;
 let activeTimer = null;
 let timerInterval = null;
+let gameEndStatus = null;
 
 const code = urlParams.get('code');
 if (code) {
@@ -126,23 +126,26 @@ function updateStatus() {
 
     // checkmate?
     if (game.in_checkmate()) {
-        status = 'Game over, ' + moveColor + ' is in checkmate.'
-        appendAlert('Good Job!', status, 'success');
+        const winner = moveColor === 'White' ? 'Black' : 'White';
+        status = 'Game over, ' + winner + ' wins (Checkmate).';
+        appendAlert('Game Over', status, 'success');
     }
 
     // draw?
     else if (game.in_draw()) {
-        status = 'Game over, drawn position'
-        appendAlert('Draw', status, 'success');
+        status = 'Game Over - Draw';
+        appendAlert('Game Over', status, 'success');
     }
 
     else if (gameOver) {
-        status = 'Opponent disconnected, you win!'
-        appendAlert('Good Job!', status, 'success');
+        status = gameEndStatus || 'Opponent disconnected, you win!';
+        if (!gameEndStatus) {
+            appendAlert('Notification', status, 'success');
+        }
     }
 
     else if (!gameHasStarted) {
-        status = 'Waiting for opponent to join and click Play'
+        status = 'Waiting for opponent to join and click Play';
     }
 
     // game still on
@@ -152,7 +155,8 @@ function updateStatus() {
 
         // check?
         if (game.in_check()) {
-            status += ', ' + (moveColor === 'White' ? 'White' : 'Black') + ' is in check'
+            const checkingColor = moveColor === 'White' ? 'White' : 'Black';
+            status += ', ' + checkingColor + ' is in check';
         }
     }
 
@@ -164,68 +168,99 @@ function updateStatus() {
 
     if (isGameOver) {
         $replayBtn.removeClass('hidden');
-        $menuBtn.removeClass('hidden');
         $resignBtn.addClass('hidden');
         $playBtn.addClass('hidden');
     } else if (gameHasStarted) {
         $replayBtn.addClass('hidden');
-        $menuBtn.addClass('hidden');
         $resignBtn.removeClass('hidden');
         $playBtn.addClass('hidden');
     } else {
         $replayBtn.addClass('hidden');
-        $menuBtn.addClass('hidden');
         $resignBtn.addClass('hidden');
         // Play button is handled by bothConnected/playerJoined events
     }
 }
 
-$playBtn.on('click', function () {
-    socket.emit('playerReady', { color: playerColor });
-    $(this).prop('disabled', true).text('Waiting for opponent...');
-});
+const $confirmModal = document.getElementById('confirmModal');
+const $modalTitle = document.getElementById('modalTitle');
+const $modalMessage = document.getElementById('modalMessage');
+let currentModalCallback = null;
 
-$replayBtn.on('click', function () {
-    socket.emit('requestReplay', { code: urlParams.get('code') });
-});
+function showConfirmModal(title, message, callback) {
+    $modalTitle.textContent = title;
+    $modalMessage.textContent = message;
+    currentModalCallback = callback;
+    $confirmModal.style.display = 'flex';
+}
 
-$backToMenuBtn.on('click', function () {
-    if (playerColor === 'white') {
-        if (confirm('Cancel this room and return to menu? All players will be kicked.')) {
-            socket.emit('closeRoom', { code: urlParams.get('code') });
-        }
-    } else {
-        window.location.href = '/';
+function hideConfirmModal() {
+    $confirmModal.style.display = 'none';
+    currentModalCallback = null;
+}
+
+document.addEventListener('click', function (e) {
+    const target = e.target.closest('button, a');
+    if (!target) return;
+
+    const id = target.id;
+
+    if (id === 'playBtn') {
+        socket.emit('playerReady', { color: playerColor });
+        $(target).prop('disabled', true).text('Waiting for opponent...');
     }
-});
-
-$('#copyCodeBtn').on('click', function () {
-    const code = urlParams.get('code');
-    navigator.clipboard.writeText(code).then(() => {
-        const $btn = $(this);
-        $btn.find('.copy-icon').addClass('hidden');
-        $btn.find('.check-icon').removeClass('hidden');
-        setTimeout(() => {
-            $btn.find('.copy-icon').removeClass('hidden');
-            $btn.find('.check-icon').addClass('hidden');
-        }, 2000);
-    });
-});
-
-$('#shareLinkBtn').on('click', function () {
-    const code = urlParams.get('code');
-    const opponentColor = playerColor === 'white' ? 'black' : 'white';
-    const shareUrl = window.location.origin + '/' + opponentColor + '?code=' + code;
-
-    if (navigator.share) {
-        navigator.share({
-            title: 'Join my Chess game!',
-            url: shareUrl
+    else if (id === 'replayBtn') {
+        socket.emit('requestReplay', { code: urlParams.get('code') });
+    }
+    else if (id === 'resignBtn') {
+        showConfirmModal('Surrender', 'Are you sure you want to surrender?', function () {
+            socket.emit('resign', { code: urlParams.get('code'), color: playerColor });
         });
-    } else {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            appendAlert('Shared!', 'Join link copied to clipboard.', 'info', 3000);
+    }
+    else if (id === 'backToMenuBtn') {
+        if (playerColor === 'white') {
+            showConfirmModal('Back to Menu', 'Cancel this room and return to menu? All players will be kicked.', function () {
+                socket.emit('closeRoom', { code: urlParams.get('code') });
+            });
+        } else {
+            showConfirmModal('Back to Menu', 'Are you sure you want to leave this game and return to menu?', function () {
+                window.location.href = '/';
+            });
+        }
+    }
+    else if (id === 'copyCodeBtn') {
+        const code = urlParams.get('code');
+        navigator.clipboard.writeText(code).then(() => {
+            const $btn = $(target);
+            $btn.find('.copy-icon').addClass('hidden');
+            $btn.find('.check-icon').removeClass('hidden');
+            setTimeout(() => {
+                $btn.find('.copy-icon').removeClass('hidden');
+                $btn.find('.check-icon').addClass('hidden');
+            }, 2000);
         });
+    }
+    else if (id === 'shareLinkBtn') {
+        const code = urlParams.get('code');
+        const opponentColor = playerColor === 'white' ? 'black' : 'white';
+        const shareUrl = window.location.origin + '/' + opponentColor + '?code=' + code;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Join my Chess game!',
+                url: shareUrl
+            });
+        } else {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                appendAlert('Shared!', 'Join link copied to clipboard.', 'info', 3000);
+            });
+        }
+    }
+    else if (id === 'modalYesBtn') {
+        if (currentModalCallback) currentModalCallback();
+        hideConfirmModal();
+    }
+    else if (id === 'modalCancelBtn') {
+        hideConfirmModal();
     }
 });
 
@@ -262,7 +297,7 @@ socket.on('errorJoin', function (type) {
 
 socket.on('playerJoined', function (data) {
     if (data.color !== playerColor) {
-        appendAlert('Thông báo', 'Có người chơi mới vào', 'info', 5000);
+        appendAlert('Notification', 'A player has joined', 'info', 5000);
         gameOver = false;
         updateStatus();
     }
@@ -270,7 +305,7 @@ socket.on('playerJoined', function (data) {
 
 socket.on('playerLeft', function (data) {
     if (data.color !== playerColor) {
-        appendAlert('Thông báo', 'Đối thủ đã thoát. Đang chờ người chơi mới...', 'warning', 5000);
+        appendAlert('Notification', 'Opponent has left. Waiting for a new player...', 'warning', 5000);
         $playBtn.addClass('hidden').prop('disabled', false).text('Play');
         isReady = false;
         gameHasStarted = false;
@@ -288,7 +323,7 @@ socket.on('playerReady', function (data) {
     if (data.color === playerColor) {
         isReady = true;
     } else {
-        appendAlert('Thông báo', 'Đối thủ đã sẵn sàng', 'info', 3000);
+        appendAlert('Notification', 'Opponent is ready', 'info', 3000);
     }
 });
 
@@ -309,11 +344,16 @@ socket.on('gameResigned', function (data) {
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();
-    const loser = data.loser === 'white' ? 'White' : 'Black';
-    const winner = data.winner === 'white' ? 'White' : 'Black';
-    const status = `Game Over - ${loser} surrendered. ${winner} wins!`;
-    appendAlert('Surrender', status, 'info', 5000);
-    $status.html(status);
+
+    const isMe = data.loser === playerColor;
+    if (isMe) {
+        gameEndStatus = 'You surrendered. You lost!';
+        appendAlert('Game Over', 'You surrendered. You lost!', 'danger', 5000);
+    } else {
+        gameEndStatus = 'Opponent surrendered. You won!';
+        appendAlert('Notification', gameEndStatus, 'success', 5000);
+    }
+
     updateStatus();
 });
 
@@ -324,7 +364,9 @@ socket.on('gameOverDisconnect', function () {
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();
-    updateStatus()
+    gameEndStatus = 'Opponent disconnected. You won!';
+    appendAlert('Notification', gameEndStatus, 'success', 5000);
+    updateStatus();
 });
 
 socket.on('gameReplayed', function () {
@@ -336,10 +378,11 @@ socket.on('gameReplayed', function () {
     whiteTime = 900;
     blackTime = 900;
     activeTimer = null;
+    gameEndStatus = null; // Reset end status
     updateTimerDisplay();
     updateStatus();
     $playBtn.removeClass('hidden').prop('disabled', false).text('Play');
-    appendAlert('Game Reset', 'The match has been restarted.', 'info', 5000);
+    appendAlert('Reset', 'The match has been restarted.', 'info', 5000);
 });
 
 function formatTime(seconds) {
@@ -391,15 +434,20 @@ socket.on('gameOverTimeout', function (data) {
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();
-    const winner = data.winner === 'white' ? 'White' : 'Black';
-    const status = `Game Over - Time out! ${winner} wins!`;
-    appendAlert('Time Out', status, 'danger');
-    $status.html(status);
+
+    const isWinner = data.winner === playerColor;
+    if (isWinner) {
+        gameEndStatus = 'Time out! You win!';
+        appendAlert('Time Out', gameEndStatus, 'success', 5000);
+    } else {
+        gameEndStatus = 'Time out! You lost!';
+        appendAlert('Time Out', gameEndStatus, 'danger', 5000);
+    }
     updateStatus();
 });
 
 socket.on('roomClosed', function () {
-    appendAlert('Room Closed', 'The host has closed the room. Redirecting to menu...', 'warning', 3000);
+    appendAlert('Room Closed', 'The host has closed the room. Returning to menu...', 'warning', 3000);
     setTimeout(() => {
         window.location.href = '/';
     }, 3000);

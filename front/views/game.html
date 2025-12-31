@@ -85,10 +85,6 @@
                                     class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-lg transition-all duration-200 active:scale-95 hidden text-sm">
                                     Play Again
                                 </button>
-                                <a href="/" id="menuBtn"
-                                    class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-1.5 px-4 rounded-lg shadow-lg transition-all duration-200 active:scale-95 hidden text-center flex items-center justify-center text-sm">
-                                    Menu
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -115,6 +111,16 @@
         document.addEventListener("touchmove", preventBehavior, { passive: false });
         console.log('Playing as ' + playerColor);
     </script>
+    <div id="confirmModal" class="custom-modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirmation</h3>
+            <p id="modalMessage">Are you sure you want to proceed?</p>
+            <div class="modal-buttons">
+                <button id="modalCancelBtn" class="modal-btn cancel">Cancel</button>
+                <button id="modalYesBtn" class="modal-btn confirm">Yes</button>
+            </div>
+        </div>
+    </div>
     <script src="/public/js/index.js?v=1.0.0"></script>
 
 </body>
