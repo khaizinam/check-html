@@ -6,7 +6,7 @@ var game = new Chess()
 var $status = $('#status')
 var $pgn = $('#pgn')
 let gameOver = false;
-const alert = document.getElementById('liveAlertPlaceholder');
+const alertModal = document.getElementById('liveAlertPlaceholder');
 const $replayBtn = $('#replayBtn');
 const $resignBtn = $('#resignBtn');
 const $menuBtn = $('#menuBtn');
@@ -25,11 +25,15 @@ if (code) {
 }
 
 
+const $playBtn = $('#playBtn');
+let isReady = false;
+
 function onDragStart(source, piece, position, orientation) {
     // do not pick up pieces if the game is over
     if (game.game_over()) return false
     if (!gameHasStarted) return false;
     if (gameOver) return false;
+    if (!isReady) return false;
 
     if ((playerColor === 'black' && piece.search(/^w/) !== -1) || (playerColor === 'white' && piece.search(/^b/) !== -1)) {
         return false;
@@ -42,6 +46,8 @@ function onDragStart(source, piece, position, orientation) {
 }
 
 function onDrop(source, target) {
+    if (!isReady) return 'snapback';
+
     let theMove = {
         from: source,
         to: target,
@@ -55,13 +61,15 @@ function onDrop(source, target) {
     if (move === null) return 'snapback'
 
     socket.emit('move', theMove);
-
-    updateStatus()
+    updateStatus();
 
     if (game.game_over()) {
         socket.emit('stopTimer', { code: urlParams.get('code') });
         if (timerInterval) clearInterval(timerInterval);
         activeTimer = null;
+        gameHasStarted = false; // Reset start flag
+        isReady = false; // Reset ready flag
+        updateStatus(); // Update UI to show replay/menu and hide play
     }
 }
 
@@ -78,8 +86,9 @@ socket.on('newMove', function (move) {
     }
 });
 
-const appendAlert = (title, message, type, timeout = 0) => {
-    alert.innerHTML = ''; // Clear previous alerts
+const appendAlert = (title, message, type, timeout = 3 * 1000) => {
+    alertModal.innerHTML = ''; // Clear previous alerts
+    alertModal.style.display = 'block';
     const wrapper = document.createElement('div')
     wrapper.innerHTML = [
         `<div class="alert alert-${type} alert-dismissible" role="alert">`,
@@ -88,11 +97,14 @@ const appendAlert = (title, message, type, timeout = 0) => {
         '</div>'
     ].join('')
 
-    alert.append(wrapper)
+    alertModal.append(wrapper)
 
     if (timeout > 0) {
         setTimeout(() => {
             wrapper.remove();
+            if (alertModal.innerHTML === '') {
+                alertModal.style.display = 'none';
+            }
         }, timeout);
     }
 }
@@ -130,7 +142,7 @@ function updateStatus() {
     }
 
     else if (!gameHasStarted) {
-        status = 'Waiting for black to join'
+        status = 'Waiting for opponent to join and click Play'
     }
 
     // game still on
@@ -154,16 +166,24 @@ function updateStatus() {
         $replayBtn.removeClass('hidden');
         $menuBtn.removeClass('hidden');
         $resignBtn.addClass('hidden');
+        $playBtn.addClass('hidden');
     } else if (gameHasStarted) {
         $replayBtn.addClass('hidden');
         $menuBtn.addClass('hidden');
         $resignBtn.removeClass('hidden');
+        $playBtn.addClass('hidden');
     } else {
         $replayBtn.addClass('hidden');
         $menuBtn.addClass('hidden');
         $resignBtn.addClass('hidden');
+        // Play button is handled by bothConnected/playerJoined events
     }
 }
+
+$playBtn.on('click', function () {
+    socket.emit('playerReady', { color: playerColor });
+    $(this).prop('disabled', true).text('Waiting for opponent...');
+});
 
 $replayBtn.on('click', function () {
     socket.emit('requestReplay', { code: urlParams.get('code') });
@@ -240,14 +260,52 @@ socket.on('errorJoin', function (type) {
     }
 });
 
+socket.on('playerJoined', function (data) {
+    if (data.color !== playerColor) {
+        appendAlert('Thông báo', 'Có người chơi mới vào', 'info', 5000);
+        gameOver = false;
+        updateStatus();
+    }
+});
+
+socket.on('playerLeft', function (data) {
+    if (data.color !== playerColor) {
+        appendAlert('Thông báo', 'Đối thủ đã thoát. Đang chờ người chơi mới...', 'warning', 5000);
+        $playBtn.addClass('hidden').prop('disabled', false).text('Play');
+        isReady = false;
+        gameHasStarted = false;
+        updateStatus();
+    }
+});
+
+socket.on('bothConnected', function () {
+    if (!gameHasStarted) {
+        $playBtn.removeClass('hidden').prop('disabled', false).text('Play');
+    }
+});
+
+socket.on('playerReady', function (data) {
+    if (data.color === playerColor) {
+        isReady = true;
+    } else {
+        appendAlert('Thông báo', 'Đối thủ đã sẵn sàng', 'info', 3000);
+    }
+});
+
 socket.on('startGame', function () {
     gameHasStarted = true;
-    alert.innerHTML = ''; // Clear any waiting messages
+    gameOver = false;
+    isReady = true;
+    alertModal.innerHTML = ''; // Clear any waiting messages
+    alertModal.style.display = 'none';
+    $playBtn.addClass('hidden');
     updateStatus()
 });
 
 socket.on('gameResigned', function (data) {
     gameOver = true;
+    gameHasStarted = false; // Reset
+    isReady = false; // Reset
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();
@@ -261,20 +319,26 @@ socket.on('gameResigned', function (data) {
 
 socket.on('gameOverDisconnect', function () {
     gameOver = true;
+    gameHasStarted = false; // Reset
+    isReady = false; // Reset
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();
     updateStatus()
 });
+
 socket.on('gameReplayed', function () {
     game = new Chess();
     board.position('start');
     gameOver = false;
+    gameHasStarted = false;
+    isReady = false;
     whiteTime = 900;
     blackTime = 900;
-    activeTimer = 'white';
+    activeTimer = null;
     updateTimerDisplay();
     updateStatus();
+    $playBtn.removeClass('hidden').prop('disabled', false).text('Play');
     appendAlert('Game Reset', 'The match has been restarted.', 'info', 5000);
 });
 
@@ -322,6 +386,8 @@ socket.on('timeSync', function (data) {
 
 socket.on('gameOverTimeout', function (data) {
     gameOver = true;
+    gameHasStarted = false; // Reset
+    isReady = false; // Reset
     activeTimer = null;
     if (timerInterval) clearInterval(timerInterval);
     updateTimerDisplay();

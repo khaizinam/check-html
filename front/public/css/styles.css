@@ -51,7 +51,17 @@ body {
 }
 
 #liveAlertPlaceholder {
-    margin: 20px;
+    padding: 20px;
+    margin: 0 auto;
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #000;
+    display: none;
+    color: #fff;
+    border-radius: 25px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .game-box {

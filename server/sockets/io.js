@@ -36,7 +36,13 @@ module.exports = io => {
                 if (Object.keys(games).length >= MAX_GAMES) {
                     return socket.emit('errorJoin', 'limitReached');
                 }
-                games[currentCode] = { white: null, black: null, hasStarted: false, moveCount: 0 };
+                games[currentCode] = {
+                    white: null,
+                    black: null,
+                    hasStarted: false,
+                    moveCount: 0,
+                    ready: { white: false, black: false }
+                };
             }
 
             if (color === 'white' || color === 'black') {
@@ -48,19 +54,47 @@ module.exports = io => {
 
             socket.join(currentCode);
 
+            // Notify others in room
+            socket.to(currentCode).emit('playerJoined', { color: color });
+
             if (games[currentCode].white && games[currentCode].black) {
-                const game = games[currentCode];
-                game.hasStarted = true;
-                // Initialize timers if not started
-                if (!game.activeTimer) {
-                    game.activeTimer = 'white'; // White starts
-                    game.timers = { white: 900, black: 900 };
+                // If game is not active (no timer running), reset ready states
+                if (!games[currentCode].activeTimer) {
+                    games[currentCode].hasStarted = false;
+                    games[currentCode].ready = { white: false, black: false };
                 }
-                io.to(currentCode).emit('startGame');
-                io.to(currentCode).emit('timeSync', {
-                    timers: game.timers,
-                    activeTimer: game.activeTimer
-                });
+                io.to(currentCode).emit('bothConnected');
+            }
+        });
+
+        socket.on('playerReady', function (data) {
+            const game = games[currentCode];
+            if (game) {
+                // Determine color based on socket.id for security
+                let color = null;
+                if (game.white === socket.id) color = 'white';
+                else if (game.black === socket.id) color = 'black';
+
+                if (!color) return; // Not a player
+
+                if (!game.ready) game.ready = { white: false, black: false };
+                game.ready[color] = true;
+
+                io.to(currentCode).emit('playerReady', { color: color });
+
+                if (game.ready.white && game.ready.black) {
+                    game.hasStarted = true;
+                    if (!game.activeTimer) {
+                        game.activeTimer = 'white';
+                        game.timers = { white: 900, black: 900 };
+                    }
+
+                    io.to(currentCode).emit('startGame');
+                    io.to(currentCode).emit('timeSync', {
+                        timers: game.timers,
+                        activeTimer: game.activeTimer
+                    });
+                }
             }
         });
 
@@ -69,8 +103,10 @@ module.exports = io => {
             if (games[code]) {
                 games[code].moveCount = 0;
                 games[code].timers = { white: 900, black: 900 };
-                games[code].activeTimer = 'white';
-                // We keep hasStarted true as players are already joined
+                games[code].activeTimer = null; // Don't start until ready
+                games[code].ready = { white: false, black: false }; // Reset ready for replay
+                games[code].hasStarted = false; // Reset start flag
+
                 io.to(code).emit('gameReplayed');
                 io.to(code).emit('timeSync', {
                     timers: games[code].timers,
@@ -85,6 +121,7 @@ module.exports = io => {
             if (games[code]) {
                 const winner = loser === 'white' ? 'black' : 'white';
                 games[code].activeTimer = null; // Stop timer on surrender
+                games[code].ready = { white: false, black: false }; // Reset ready
                 io.to(code).emit('gameResigned', { winner, loser });
             }
         });
@@ -111,9 +148,17 @@ module.exports = io => {
                 const isPlayer = games[currentCode].white === socket.id || games[currentCode].black === socket.id;
                 const activeGame = games[currentCode].hasStarted && games[currentCode].moveCount > 0;
 
+                const color = games[currentCode].white === socket.id ? 'white' : 'black';
+
                 // Free the role
                 if (games[currentCode].white === socket.id) games[currentCode].white = null;
                 if (games[currentCode].black === socket.id) games[currentCode].black = null;
+
+                if (games[currentCode].ready) {
+                    games[currentCode].ready[color] = false;
+                }
+
+                socket.to(currentCode).emit('playerLeft', { color: color });
 
                 // Emmit Game Over only if an active player left during an ONGOING game
                 if (isPlayer && activeGame) {
