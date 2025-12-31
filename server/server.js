@@ -13,6 +13,9 @@ const app = express(),
   server = http.Server(app),
   io = socket(server);
 
+app.locals.gaId = config.gaId;
+app.locals.googleSiteVerification = config.googleSiteVerification;
+
 server.listen(config.port);
 
 MAX_GAMES = 20;

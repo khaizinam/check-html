@@ -24,7 +24,7 @@
 <meta property="twitter:description"
     content="Play chess online using unique room codes. Real-time multiplayer chess game built with Socket.io.">
 <meta property="twitter:image" content="https://chess.khaizinam.io.vn/public/img/main-icon.png">
-<meta name="google-site-verification" content="elBHzdkF54y_C1va2cE6ayoHvh8OU3o7F5lYaZZV7q4" />
+<meta name="google-site-verification" content="{{googleSiteVerification}}" />
 
 <link rel="icon" type="image/x-icon" href="/public/img/main-icon.png">
 <link rel="robots" href="/public/robots.txt">
@@ -44,13 +44,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap" rel="stylesheet">
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K42M00TFL9"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{gaId}}"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
-    gtag('config', 'G-K42M00TFL9');
+    gtag('config', '{{gaId}}');
 </script>
 <script>
     let socket = io();

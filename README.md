@@ -1,45 +1,63 @@
-# Chess
-This is an upgraded version of [almatrass/chess-site](https://github.com/khaizinam/chess-online)
-This version contains better CSS styling, JS game code checking mechanism.
+# Chess Online ♟️
 
-**This project does not work on mobile**
+A real-time multiplayer chess game built with Node.js, Express, Socket.io, and Tailwind CSS. Play with friends using unique room codes instantly in your browser.
 
-> *Has been tested on **Google Chrome**, **Edge**, **FireFox**, **Chromium**, and **Opera** web browsers.*
+## 🚀 Features
 
-<hr>
+- **Real-time Gameplay**: Powered by Socket.io for instantaneous move syncing.
+- **Private Rooms**: Create or join games using unique codes.
+- **Responsive Design**: Optimized for both desktop and mobile devices.
+- **Game Controls**: Surrender, Play Again, and easy Room Code sharing.
+- **Timers**: Interactive game clocks for both players.
+- **Modern UI**: Sleek dark-mode aesthetic with smooth animations.
 
-### Multi-player & Multi-room Support
+## 🛠️ Setup & Installation
 
-This project supports **multiple simultaneous games** using a "Game Code" system.
-- **Independent Rooms**: Each unique "Game Code" creates an isolated room. Players with the same code play against each other without interference from other rooms.
-- **Simultaneous Games**: You can have dozens of pairs playing in different rooms at the same time.
-- **How to use**:
-    1. Create a game by typing in a unique code (e.g., `my-secret-room-123`).
-    2. Share this code with your opponent.
-    3. Both players will be in the same game instance.
+Follow these steps to get the project running locally:
 
-## Dependencies:
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18.16.0 or higher recommended)
+- [Yarn](https://yarnpkg.com/) or npm
 
-|      Library      |    Version     |
-|-------------------|----------------|
-|dotenv             | ^16.3.1        |
-|express            | ^4.18.2        |
-|express-handlebars | ^7.0.7         |
-|http               | ^0.0.1-security|
-|path               | ^0.12.7        |
-|socket.io          | ^4.7.2         |
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/khaizinam/chess-online.git
+   cd chess-online
+   ```
+2. Install dependencies:
+   ```bash
+   yarn install
+   ```
 
+### Running the App
+- **Development Mode** (with auto-reload):
+  ```bash
+  yarn watch
+  ```
+- **Production Mode**:
+  ```bash
+  yarn start
+  ```
+The server will start on the port specified in `config.js` (default: `3037`).
 
-### Instructions (building and deploying on local network):
+## 📜 Game Rules
 
-To install dependencies:
+- **Movement**: Standard chess rules apply.
+- **Winning**: Checkmate the opponent or win if they run out of time.
+- **Surrender**: You can choose to surrender at any time to end the game immediately.
+- **Draw**: The game ends in a draw if the board reaching a standard draw position.
 
-```
-yarn
-```
+## 🤝 Support Us
 
-To start the server:
+If you enjoy this project and would like to support its development, you can make a donation via the QR code below:
 
-```
-yarn start
-```
+![Support QR Code](front/public/img/qr_code.png)
+
+*Thank you for your support!* 💖
+
+## 👤 Author
+
+Developed and maintained by **khaizinam**.
+- **Website**: [khaizinam.io.vn](https://khaizinam.io.vn)
+- **GitHub**: [@khaizinam](https://github.com/khaizinam)
